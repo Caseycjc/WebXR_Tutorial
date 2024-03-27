@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <title>Hello WebXR!</title>
+  <!-- three.js -->
+  <script src="https://unpkg.com/three@0.126.0/build/three.js"></script>
+</head>
+<body>
+<button onclick="activateXR()">Start Hello WebXR</button>
+<script>
+async function activateXR() {
+  if ('xr' in navigator) {
+    try {
+      const session = await navigator.xr.requestSession("immersive-ar", { optionalFeatures: ['local-floor', 'bounded-floor'] });
+      const canvas = document.createElement("canvas");
+      document.body.appendChild(canvas);
+      const gl = canvas.getContext("webgl", { xrCompatible: true });
+
+      const scene = new THREE.Scene();
+      const materials = [
+        new THREE.MeshBasicMaterial({ color: 0xff0000 }),
+        new THREE.MeshBasicMaterial({ color: 0x0000ff }),
+        new THREE.MeshBasicMaterial({ color: 0x00ff00 }),
+        new THREE.MeshBasicMaterial({ color: 0xff00ff }),
+        new THREE.MeshBasicMaterial({ color: 0x00ffff }),
+        new THREE.MeshBasicMaterial({ color: 0xffff00 })
+      ];
+      const cube = new THREE.Mesh(new THREE.BoxBufferGeometry(0.2, 0.2, 0.2), materials);
+      cube.position.set(1, 1, 1);
+      scene.add(cube);
+
+      const renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        preserveDrawingBuffer: true,
+        canvas: canvas,
+        context: gl
+      });
+      renderer.autoClear = false;
+
+      const camera = new THREE.PerspectiveCamera();
+      camera.matrixAutoUpdate = false;
+
+      const referenceSpace = await session.requestReferenceSpace('local');
+      session.updateRenderState({
+        baseLayer: new XRWebGLLayer(session, gl)
+      });
+
+      const onXRFrame = (time, frame) => {
+        session.requestAnimationFrame(onXRFrame);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, session.renderState.baseLayer.framebuffer);
+        const pose = frame.getViewerPose(referenceSpace);
+        if (pose) {
+          const view = pose.views[0];
+          const viewport = session.renderState.baseLayer.getViewport(view);
+          renderer.setSize(viewport.width, viewport.height);
+          camera.matrix.fromArray(view.transform.matrix);
+          camera.projectionMatrix.fromArray(view.projectionMatrix);
+          camera.updateMatrixWorld(true);
+          renderer.render(scene, camera);
+        }
+      };
+      session.requestAnimationFrame(onXRFrame);
+    } catch (error) {
+      console.error("Failed to start AR session.", error);
+    }
+  } else {
+    console.error("WebXR is not supported in this browser.");
+  }
+}
+</script>
+</body>
+</html>
