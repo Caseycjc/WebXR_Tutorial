@@ -13,7 +13,7 @@
 async function activateXR() {
   if ('xr' in navigator) {
     try {
-      const session = await navigator.xr.requestSession("immersive-ar", { optionalFeatures: ['local-floor', 'bounded-floor'] });
+     const session = await navigator.xr.requestSession('immersive-ar');
       const canvas = document.createElement("canvas");
       document.body.appendChild(canvas);
       const gl = canvas.getContext("webgl", { xrCompatible: true });
