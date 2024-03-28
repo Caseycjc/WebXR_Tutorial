@@ -28,7 +28,7 @@ async function activateXR() {
         new THREE.MeshBasicMaterial({ color: 0xffff00 })
       ];
       const cube = new THREE.Mesh(new THREE.BoxBufferGeometry(0.2, 0.2, 0.2), materials);
-      cube.position.set(0, 0, -1);
+      cube.position.set(0, 0, -0.5);
       scene.add(cube);
 
       const renderer = new THREE.WebGLRenderer({
